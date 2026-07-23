@@ -1,0 +1,447 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ActiveSessionType {
+  activeBreakId: String
+  breakStartTime: String
+  clockIn: String!
+  date: String!
+  recordId: String!
+}
+
+input AssignShiftDto {
+  endDate: String
+  notes: String
+  rotationId: String
+  shiftId: String
+  startDate: String!
+  userId: String!
+}
+
+type AttendanceBreakType {
+  attendanceId: String!
+  breakType: BreakType!
+  createdAt: DateTime!
+  durationMinutes: Int
+  endTime: DateTime
+  id: ID!
+  notes: String
+  startTime: DateTime!
+  tenantId: String!
+}
+
+type AttendanceDailySummaryType {
+  absent: Int!
+  date: String!
+  earlyDeparture: Int!
+  halfDay: Int!
+  late: Int!
+  onLeave: Int!
+  overtime: Int!
+  present: Int!
+  total: Int!
+}
+
+input AttendancePolicyDto {
+  allowMobileClockIn: Boolean
+  allowedMethods: [String!]
+  autoClockOutMinutes: Int
+  gpsRadiusMeters: Int
+  graceMinutes: Int
+  isActive: Boolean
+  maxBreakMinutes: Int
+  maxWorkHours: Int
+  minBreakMinutes: Int
+  overtimeAfterMinutes: Int
+  requireGpsLocation: Boolean
+}
+
+type AttendancePolicyType {
+  allowMobileClockIn: Boolean!
+  allowedMethods: [String!]!
+  autoClockOutMinutes: Int
+  createdAt: DateTime!
+  gpsRadiusMeters: Int!
+  graceMinutes: Int!
+  id: ID!
+  isActive: Boolean!
+  maxBreakMinutes: Int!
+  maxWorkHours: Int!
+  minBreakMinutes: Int!
+  overtimeAfterMinutes: Int!
+  requireGpsLocation: Boolean!
+  tenantId: String!
+  updatedAt: DateTime!
+}
+
+type AttendanceRecordType {
+  approvalStatus: String
+  breakMinutes: Int!
+  breaks: [AttendanceBreakType!]!
+  clockIn: DateTime
+  clockInDevice: String
+  clockInLat: Float
+  clockInLng: Float
+  clockInMethod: ClockMethod
+  clockOut: DateTime
+  clockOutDevice: String
+  clockOutLat: Float
+  clockOutLng: Float
+  clockOutMethod: ClockMethod
+  createdAt: DateTime!
+  date: DateTime!
+  earlyMinutes: Int!
+  id: ID!
+  isEarlyDeparture: Boolean!
+  isLate: Boolean!
+  isManualEntry: Boolean!
+  lateMinutes: Int!
+  locationId: String
+  notes: String
+  overtimeMinutes: Int
+  scheduledIn: DateTime
+  scheduledOut: DateTime
+  shiftId: String
+  status: AttendanceStatus!
+  tenantId: String!
+  updatedAt: DateTime!
+  userId: String!
+  workMinutes: Int
+}
+
+"""Attendance record status"""
+enum AttendanceStatus {
+  ABSENT
+  EARLY_DEPARTURE
+  HALF_DAY
+  HOLIDAY
+  LATE
+  ON_LEAVE
+  OVERTIME
+  PRESENT
+}
+
+"""Type of break taken during the shift"""
+enum BreakType {
+  LUNCH
+  MEDICAL
+  OTHER
+  PRAYER
+  SHORT_BREAK
+}
+
+input ClockInDto {
+  deviceId: String
+  latitude: Float
+  locationId: String
+  longitude: Float
+  method: ClockMethod
+  notes: String
+}
+
+"""Method used to clock in or out"""
+enum ClockMethod {
+  FACE_RECOGNITION
+  GPS
+  KIOSK
+  MANUAL
+  MOBILE
+  QR_CODE
+  RFID
+  WEB
+}
+
+input ClockOutDto {
+  deviceId: String
+  latitude: Float
+  longitude: Float
+  method: ClockMethod
+  notes: String
+}
+
+input CreateBreakRuleDto {
+  breakType: BreakType
+  durationMinutes: Int!
+  isPaid: Boolean
+  isRequired: Boolean
+  name: String!
+  startOffsetMins: Int!
+}
+
+input CreateRotationDto {
+  cycleDays: Int!
+  description: String
+  name: String!
+  slots: [RotationSlotDto!]
+  startDate: String!
+}
+
+input CreateShiftDto {
+  code: String
+  colorCode: String
+  description: String
+  endTime: String!
+  graceMinutes: Int
+  isNightShift: Boolean
+  name: String!
+  overtimeAfterMinutes: Int
+  startTime: String!
+  workDays: [Int!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type EffectiveShiftType {
+  breakRules: [ShiftBreakRuleType!]!
+  graceMinutes: Int!
+  isNightShift: Boolean!
+  overtimeAfterMinutes: Int
+  scheduledIn: DateTime!
+  scheduledOut: DateTime!
+  shiftId: String!
+  shiftName: String!
+}
+
+input EndBreakDto {
+  notes: String
+}
+
+input ManualEntryDto {
+  clockIn: String
+  clockOut: String
+  date: String!
+  notes: String
+  status: AttendanceStatus
+  userId: String!
+}
+
+type Mutation {
+  addShiftBreakRule(input: CreateBreakRuleDto!, shiftId: ID!): ShiftBreakRuleType!
+  assignShift(input: AssignShiftDto!): ShiftAssignmentType!
+  clockIn(input: ClockInDto): AttendanceRecordType!
+  clockOut(input: ClockOutDto): AttendanceRecordType!
+  createManualAttendance(input: ManualEntryDto!): AttendanceRecordType!
+  createShift(input: CreateShiftDto!): ShiftType!
+  createShiftRotation(input: CreateRotationDto!): ShiftRotationType!
+  deleteShift(id: ID!): Boolean!
+  endBreak(input: EndBreakDto): AttendanceBreakType!
+  removeShiftBreakRule(ruleId: ID!, shiftId: ID!): Boolean!
+  startBreak(input: StartBreakDto): AttendanceBreakType!
+  updateAttendanceRecord(id: ID!, input: UpdateAttendanceDto!): AttendanceRecordType!
+  updateShift(id: ID!, input: UpdateShiftDto!): ShiftType!
+  updateShiftAssignment(id: ID!, input: UpdateAssignmentDto!): ShiftAssignmentType!
+  upsertAttendancePolicy(input: AttendancePolicyDto!): AttendancePolicyType!
+  upsertRotationSlot(input: UpsertRotationSlotDto!, rotationId: ID!): ShiftRotationSlotType!
+}
+
+type PaginatedAssignmentsType {
+  meta: PaginationMeta!
+  nodes: [ShiftAssignmentType!]!
+}
+
+type PaginatedAttendanceType {
+  meta: PaginationMeta!
+  nodes: [AttendanceRecordType!]!
+}
+
+type PaginatedShiftsType {
+  meta: PaginationMeta!
+  nodes: [ShiftType!]!
+}
+
+type PaginationMeta {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+type Query {
+  attendance(id: ID!): AttendanceRecordType!
+  attendanceDailySummary(date: String!): AttendanceDailySummaryType!
+  attendancePolicy: AttendancePolicyType!
+  attendances(query: QueryAttendanceDto): PaginatedAttendanceType!
+  effectiveShift(
+    """YYYY-MM-DD"""
+    date: String!
+    userId: ID!
+  ): EffectiveShiftType
+  myActiveSession: ActiveSessionType
+  myAttendance(query: QueryAttendanceDto): PaginatedAttendanceType!
+  shift(id: ID!): ShiftType!
+  shiftAssignment(id: ID!): ShiftAssignmentType!
+  shiftAssignments(query: QueryAssignmentDto): PaginatedAssignmentsType!
+  shiftRotation(id: ID!): ShiftRotationType!
+  shiftRotations(isActive: Boolean): [ShiftRotationType!]!
+  shifts(query: QueryShiftDto): PaginatedShiftsType!
+}
+
+input QueryAssignmentDto {
+  date: String
+  isActive: Boolean
+  limit: Int! = 20
+  page: Int! = 1
+  search: String
+  shiftId: String
+  sortBy: String
+  sortOrder: String = "desc"
+  userId: String
+}
+
+input QueryAttendanceDto {
+  departmentId: String
+  endDate: String
+  isLate: Boolean
+  isManualEntry: Boolean
+  limit: Int! = 20
+  locationId: String
+  page: Int! = 1
+  search: String
+  sortBy: String
+  sortOrder: String = "desc"
+  startDate: String
+  status: AttendanceStatus
+  userId: String
+}
+
+input QueryShiftDto {
+  isActive: Boolean
+  limit: Int! = 20
+  page: Int! = 1
+  search: String
+  sortBy: String
+  sortOrder: String = "desc"
+}
+
+input RotationSlotDto {
+  dayOffset: Int!
+  shiftId: String
+}
+
+type ShiftAssignmentType {
+  assignedBy: String!
+  createdAt: DateTime!
+  endDate: DateTime
+  id: ID!
+  isActive: Boolean!
+  notes: String
+  rotationId: String
+  shift: ShiftType
+  shiftId: String
+  startDate: DateTime!
+  tenantId: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type ShiftBreakRuleType {
+  breakType: BreakType!
+  createdAt: DateTime!
+  durationMinutes: Int!
+  id: ID!
+  isPaid: Boolean!
+  isRequired: Boolean!
+  name: String!
+  shiftId: String!
+  startOffsetMins: Int!
+  tenantId: String!
+  updatedAt: DateTime!
+}
+
+type ShiftRotationSlotType {
+  """Day offset within the rotation cycle (0-based)"""
+  dayOffset: Int!
+  id: ID!
+  rotationId: String!
+  shift: ShiftType
+  shiftId: String
+}
+
+type ShiftRotationType {
+  createdAt: DateTime!
+  cycleDays: Int!
+  description: String
+  id: ID!
+  isActive: Boolean!
+  name: String!
+  slots: [ShiftRotationSlotType!]!
+  startDate: DateTime!
+  tenantId: String!
+  updatedAt: DateTime!
+}
+
+type ShiftType {
+  breakRules: [ShiftBreakRuleType!]!
+  code: String
+  colorCode: String
+  createdAt: DateTime!
+  description: String
+
+  """End time in HH:mm (24-hour)"""
+  endTime: String!
+
+  """0 = inherit grace from AttendancePolicy"""
+  graceMinutes: Int!
+  id: ID!
+  isActive: Boolean!
+
+  """True when the shift ends on the next calendar day"""
+  isNightShift: Boolean!
+  name: String!
+
+  """null = inherit from AttendancePolicy"""
+  overtimeAfterMinutes: Int
+
+  """Start time in HH:mm (24-hour)"""
+  startTime: String!
+  tenantId: String!
+  updatedAt: DateTime!
+
+  """ISO weekdays this shift runs: 1=Mon … 7=Sun"""
+  workDays: [Int!]!
+}
+
+input StartBreakDto {
+  breakType: BreakType
+  notes: String
+}
+
+input UpdateAssignmentDto {
+  endDate: String
+  isActive: Boolean
+  notes: String
+  rotationId: String
+  shiftId: String
+}
+
+input UpdateAttendanceDto {
+  clockIn: String
+  clockOut: String
+  notes: String
+  status: AttendanceStatus
+}
+
+input UpdateShiftDto {
+  code: String
+  colorCode: String
+  description: String
+  endTime: String
+  graceMinutes: Int
+  isActive: Boolean
+  isNightShift: Boolean
+  name: String
+  overtimeAfterMinutes: Int
+  startTime: String
+  workDays: [Int!]
+}
+
+input UpsertRotationSlotDto {
+  dayOffset: Int!
+  shiftId: String
+}

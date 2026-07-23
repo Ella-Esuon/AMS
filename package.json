@@ -1,0 +1,27 @@
+{
+  "name": "ams-platform",
+  "version": "1.0.0",
+  "description": "Multi-Tenant Attendance Management System",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=apps/api",
+    "build:api": "npm run build --workspace=apps/api",
+    "test:api": "npm run test --workspace=apps/api",
+    "lint": "npm run lint --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^7.4.2",
+    "swagger-ui-express": "^5.0.1"
+  }
+}

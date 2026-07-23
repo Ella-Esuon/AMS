@@ -1,0 +1,130 @@
+version: '3.9'
+
+services:
+  # ─── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: ams_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ams_db
+      POSTGRES_USER: ams_user
+      POSTGRES_PASSWORD: ams_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./docker/postgres/rls.sql:/docker-entrypoint-initdb.d/02-rls.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ams_user -d ams_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ams_network
+
+  # ─── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: ams_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass redis_password
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "redis_password", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ams_network
+
+  # ─── NestJS API ──────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+    container_name: ams_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://ams_app:ams_app_password@postgres:5432/ams_db?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_password
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    volumes:
+      - ./apps/api/src:/app/apps/api/src:delegated
+      - ./apps/api/prisma:/app/apps/api/prisma:delegated
+      - api_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev --workspace=apps/api
+    networks:
+      - ams_network
+
+  # ─── Adminer (DB UI) ─────────────────────────────────────────────────────────
+  adminer:
+    image: adminer:4.8.1
+    container_name: ams_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha-dark
+    depends_on:
+      - postgres
+    networks:
+      - ams_network
+    profiles:
+      - tools
+
+  # ─── Redis Commander ─────────────────────────────────────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ams_redis_ui
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:redis_password"
+      HTTP_USER: admin
+      HTTP_PASSWORD: admin123
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - ams_network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  api_node_modules:
+    driver: local
+
+networks:
+  ams_network:
+    driver: bridge
+    name: ams_network
