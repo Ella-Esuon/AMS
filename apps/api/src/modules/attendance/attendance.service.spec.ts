@@ -5,6 +5,7 @@ import { AttendanceStatus, ClockMethod, BreakType, AuditAction, AuditStatus } fr
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
+import { ShiftsService } from '../shifts/shifts.service';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,13 @@ const mockRedis = {
 
 const mockEventEmitter = {
   emit: jest.fn(),
+};
+
+// No effective shift by default, matching every existing test's assumption
+// that ShiftsModule isn't loaded; override with mockResolvedValueOnce in
+// tests that need to exercise shift-relative logic (e.g. late detection).
+const mockShiftsService = {
+  getEffectiveShift: jest.fn().mockResolvedValue(null),
 };
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -135,6 +143,7 @@ describe('AttendanceService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RedisService, useValue: mockRedis },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        { provide: ShiftsService, useValue: mockShiftsService },
       ],
     }).compile();
 
@@ -218,6 +227,15 @@ describe('AttendanceService', () => {
       mockRedis.get.mockResolvedValueOnce(null);
       mockPrisma.attendanceRecord.findFirst.mockResolvedValueOnce(null);
       mockPrisma.attendancePolicy.findUnique.mockResolvedValueOnce(basePolicy);
+      // Late detection is computed from the effective shift's scheduledIn,
+      // not from the mocked upsert() return value — without this, isLate
+      // is always false regardless of what the DB mock claims.
+      mockShiftsService.getEffectiveShift.mockResolvedValueOnce({
+        shiftId: 'shift-uuid-1',
+        scheduledIn: new Date(Date.now() - 35 * 60 * 1000), // 35 min ago
+        scheduledOut: null,
+        graceMinutes: 0,
+      });
 
       const lateRecord = {
         ...baseRecord,
