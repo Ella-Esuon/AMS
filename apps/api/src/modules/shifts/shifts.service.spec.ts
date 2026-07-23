@@ -6,7 +6,8 @@ import { ShiftsService } from './shifts.service';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
 
-const mockPrisma = {
+const mockPrisma: Record<string, any> = {
+  $transaction: jest.fn((callback: any) => callback(mockPrisma)),
   shift: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -201,7 +202,7 @@ describe('ShiftsService', () => {
         tenantId: TENANT_ID,
         shiftId: SHIFT_ID,
         name: 'Lunch',
-        breakType: BreakType.MEAL_BREAK,
+        breakType: BreakType.LUNCH,
         startOffsetMins: 240,
         durationMinutes: 30,
         isPaid: false,
@@ -215,7 +216,7 @@ describe('ShiftsService', () => {
       const result = await service.addBreakRule(
         TENANT_ID,
         SHIFT_ID,
-        { name: 'Lunch', startOffsetMins: 240, durationMinutes: 30, breakType: BreakType.MEAL_BREAK } as any,
+        { name: 'Lunch', startOffsetMins: 240, durationMinutes: 30, breakType: BreakType.LUNCH } as any,
         ACTOR_ID,
       );
 
