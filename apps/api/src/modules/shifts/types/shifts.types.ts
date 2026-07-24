@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, ID, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, Int, ID } from '@nestjs/graphql';
 import { BreakType } from '@prisma/client';
 import { createPaginatedType } from '../../../common/types/pagination.types';
 

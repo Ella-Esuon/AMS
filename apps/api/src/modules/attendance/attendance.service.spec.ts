@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AttendanceStatus, ClockMethod, BreakType, AuditAction, AuditStatus } from '@prisma/client';
+import { AttendanceStatus, ClockMethod, BreakType } from '@prisma/client';
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';

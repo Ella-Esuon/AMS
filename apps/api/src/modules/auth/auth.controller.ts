@@ -16,7 +16,6 @@ import {
   ApiBearerAuth,
   ApiHeader,
   ApiBody,
-  ApiResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';

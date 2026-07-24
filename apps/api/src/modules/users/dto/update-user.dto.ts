@@ -4,7 +4,6 @@ import {
   IsEnum,
   IsUUID,
   MaxLength,
-  IsUrl,
   IsDateString,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';

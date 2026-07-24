@@ -1,7 +1,7 @@
 import * as winston from 'winston';
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 
-const { combine, timestamp, errors, json, colorize, simple } = winston.format;
+const { combine, timestamp, errors, json, colorize } = winston.format;
 
 const isDev = process.env.NODE_ENV !== 'production';
 

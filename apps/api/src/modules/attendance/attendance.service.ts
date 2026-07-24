@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, AttendanceStatus, ClockMethod, BreakType, AuditAction, AuditStatus } from '@prisma/client';
-import { differenceInMinutes, startOfDay, endOfDay, format, parseISO } from 'date-fns';
+import { differenceInMinutes, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
 import { ClockInDto, StartBreakDto } from './dto/clock-in.dto';
@@ -87,7 +87,7 @@ export class AttendanceService {
     userId: string,
     dto: ClockInDto,
     ipAddress?: string,
-    userAgent?: string,
+    _userAgent?: string,
   ) {
     // Prevent duplicate clock-in
     const existingSession = await this.getActiveSessionFromCache(tenantId, userId);
@@ -238,7 +238,7 @@ export class AttendanceService {
     userId: string,
     dto: ClockOutDto,
     ipAddress?: string,
-    userAgent?: string,
+    _userAgent?: string,
   ) {
     const session = await this.getActiveSessionFromCache(tenantId, userId);
     if (!session) {

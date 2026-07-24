@@ -1,5 +1,4 @@
 import { Request } from 'express';
-import { User, Tenant } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;

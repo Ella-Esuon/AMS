@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsUUID, IsISO8601, IsString } from 'class-validator';
+import { IsOptional, IsEnum, IsUUID, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { InputType, Field } from '@nestjs/graphql';
 import { AttendanceStatus } from '@prisma/client';

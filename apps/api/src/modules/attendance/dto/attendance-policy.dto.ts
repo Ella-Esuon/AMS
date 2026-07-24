@@ -4,7 +4,6 @@ import {
   IsInt,
   IsArray,
   IsEnum,
-  IsString,
   Min,
   Max,
 } from 'class-validator';

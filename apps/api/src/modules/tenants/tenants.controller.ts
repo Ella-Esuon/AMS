@@ -28,7 +28,6 @@ import { RbacGuard } from '../../common/guards/rbac.guard';
 import { Roles, SystemRole } from '../../common/decorators/roles.decorator';
 import { Public, SkipTenantCheck } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { TenantId } from '../../common/decorators/tenant.decorator';
 import { PaginationArgs } from '../../common/types/pagination.types';
 import { AuthenticatedUser } from '../../common/types/request.types';
 

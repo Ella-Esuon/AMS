@@ -1,9 +1,7 @@
 import {
   IsString,
   IsOptional,
-  IsBoolean,
   IsInt,
-  IsEnum,
   IsArray,
   IsUUID,
   MinLength,
