@@ -109,7 +109,7 @@ export class AttendanceService {
     if (dbActive) {
       await this.cacheActiveSession(tenantId, userId, {
         recordId: dbActive.id,
-        clockIn: dbActive.clockIn!.toISOString(),
+        clockIn: (dbActive.clockIn as Date).toISOString(),
         date: dbActive.date.toISOString(),
       });
       throw new ConflictException('Already clocked in. Please clock out before clocking in again.');
@@ -294,7 +294,7 @@ export class AttendanceService {
     // Use shift-level overtime threshold when available, fall back to policy
     let effectiveOvertimeAfter = policy.overtimeAfterMinutes;
     if (existing.shiftId && this.shiftsService) {
-      const shiftData = await this.shiftsService.findOne(tenantId, existing.shiftId).catch(() => null) as any;
+      const shiftData = await this.shiftsService.findOne(tenantId, existing.shiftId).catch(() => null);
       if (shiftData?.overtimeAfterMinutes != null) {
         effectiveOvertimeAfter = shiftData.overtimeAfterMinutes;
       }
@@ -522,7 +522,7 @@ export class AttendanceService {
     const openBreak = record.breaks[0];
     const session2: ActiveSession = {
       recordId: record.id,
-      clockIn: record.clockIn!.toISOString(),
+      clockIn: (record.clockIn as Date).toISOString(),
       date: record.date.toISOString(),
       ...(openBreak && {
         activeBreakId: openBreak.id,

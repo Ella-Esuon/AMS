@@ -142,9 +142,9 @@ export class ShiftsService {
     return { nodes: shifts, meta: buildPaginationMeta(total, page, limit) };
   }
 
-  async findOne(tenantId: string, id: string) {
+  async findOne(tenantId: string, id: string): Promise<Prisma.ShiftGetPayload<{ select: typeof SHIFT_SELECT }>> {
     const cacheKey = this.shiftKey(tenantId, id);
-    const cached = await this.redis.get<unknown>(cacheKey);
+    const cached = await this.redis.get<Prisma.ShiftGetPayload<{ select: typeof SHIFT_SELECT }>>(cacheKey);
     if (cached) return cached;
 
     const shift = await this.prisma.shift.findFirst({

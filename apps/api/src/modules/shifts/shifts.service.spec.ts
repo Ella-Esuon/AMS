@@ -5,8 +5,17 @@ import { BreakType } from '@prisma/client';
 import { ShiftsService } from './shifts.service';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
+import { CreateShiftDto, CreateBreakRuleDto } from './dto/create-shift.dto';
+import { UpdateShiftDto } from './dto/update-shift.dto';
+import { AssignShiftDto } from './dto/assign-shift.dto';
+import { CreateRotationDto, UpsertRotationSlotDto } from './dto/shift-rotation.dto';
 
+// Precisely typing this mock would mean replacing every model/method with
+// real Prisma-generated types across ~70 mockPrisma.<model>.<method> call
+// sites below — out of proportion for a test double. `any` is deliberate.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockPrisma: Record<string, any> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   $transaction: jest.fn((callback: any) => callback(mockPrisma)),
   shift: {
     create: jest.fn(),
@@ -107,7 +116,7 @@ describe('ShiftsService', () => {
       mockPrisma.shift.create.mockResolvedValue(mockShift);
 
       const dto = { name: 'Morning Shift', startTime: '09:00', endTime: '17:00' };
-      const result = await service.create(TENANT_ID, dto as any, ACTOR_ID);
+      const result = await service.create(TENANT_ID, dto as unknown as CreateShiftDto, ACTOR_ID);
 
       expect(mockPrisma.shift.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ tenantId: TENANT_ID, name: 'Morning Shift' }) }),
@@ -120,7 +129,7 @@ describe('ShiftsService', () => {
       mockPrisma.shift.findFirst.mockResolvedValue(mockShift);
 
       await expect(
-        service.create(TENANT_ID, { name: 'X', startTime: '09:00', endTime: '17:00', code: 'MORN' } as any, ACTOR_ID),
+        service.create(TENANT_ID, { name: 'X', startTime: '09:00', endTime: '17:00', code: 'MORN' } as unknown as CreateShiftDto, ACTOR_ID),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -168,7 +177,7 @@ describe('ShiftsService', () => {
       mockPrisma.shift.findFirst.mockResolvedValue(mockShift);
       mockPrisma.shift.update.mockResolvedValue({ ...mockShift, name: 'Evening Shift' });
 
-      const result = await service.update(TENANT_ID, SHIFT_ID, { name: 'Evening Shift' } as any, ACTOR_ID);
+      const result = await service.update(TENANT_ID, SHIFT_ID, { name: 'Evening Shift' } as unknown as UpdateShiftDto, ACTOR_ID);
 
       expect(mockRedis.del).toHaveBeenCalled();
       expect(mockEventEmitter.emit).toHaveBeenCalledWith('shift.updated', expect.objectContaining({ shiftId: SHIFT_ID }));
@@ -216,7 +225,7 @@ describe('ShiftsService', () => {
       const result = await service.addBreakRule(
         TENANT_ID,
         SHIFT_ID,
-        { name: 'Lunch', startOffsetMins: 240, durationMinutes: 30, breakType: BreakType.LUNCH } as any,
+        { name: 'Lunch', startOffsetMins: 240, durationMinutes: 30, breakType: BreakType.LUNCH } as unknown as CreateBreakRuleDto,
         ACTOR_ID,
       );
 
@@ -253,7 +262,7 @@ describe('ShiftsService', () => {
 
       const result = await service.assignShift(
         TENANT_ID,
-        { userId: USER_ID, shiftId: SHIFT_ID, startDate: '2025-01-01' } as any,
+        { userId: USER_ID, shiftId: SHIFT_ID, startDate: '2025-01-01' } as unknown as AssignShiftDto,
         ACTOR_ID,
       );
 
@@ -265,7 +274,7 @@ describe('ShiftsService', () => {
       mockPrisma.user.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.assignShift(TENANT_ID, { userId: 'bad-id', shiftId: SHIFT_ID, startDate: '2025-01-01' } as any, ACTOR_ID),
+        service.assignShift(TENANT_ID, { userId: 'bad-id', shiftId: SHIFT_ID, startDate: '2025-01-01' } as unknown as AssignShiftDto, ACTOR_ID),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -291,11 +300,11 @@ describe('ShiftsService', () => {
 
       const result = await service.getEffectiveShift(TENANT_ID, USER_ID, date);
 
-      expect(result).not.toBeNull();
-      expect(result!.shiftId).toBe(SHIFT_ID);
-      expect(result!.scheduledIn).toEqual(expect.any(Date));
-      expect(result!.scheduledOut).toEqual(expect.any(Date));
-      expect(result!.graceMinutes).toBe(10);
+      if (!result) throw new Error('expected getEffectiveShift to return a result');
+      expect(result.shiftId).toBe(SHIFT_ID);
+      expect(result.scheduledIn).toEqual(expect.any(Date));
+      expect(result.scheduledOut).toEqual(expect.any(Date));
+      expect(result.graceMinutes).toBe(10);
     });
 
     it('returns null when shift does not run on this weekday', async () => {
@@ -326,9 +335,9 @@ describe('ShiftsService', () => {
 
       const result = await service.getEffectiveShift(TENANT_ID, USER_ID, date);
 
-      expect(result).not.toBeNull();
+      if (!result) throw new Error('expected getEffectiveShift to return a result');
       // scheduledOut should be on the next calendar day
-      expect(result!.scheduledOut.getDate()).toBe(date.getDate() + 1);
+      expect(result.scheduledOut.getDate()).toBe(date.getDate() + 1);
     });
 
     it('resolves rotation slot for the target date', async () => {
@@ -349,8 +358,8 @@ describe('ShiftsService', () => {
       // 2025-01-06 (Mon) is 5 days after 2025-01-01 (Wed) → cycleDay 5 → matches slot
       const result = await service.getEffectiveShift(TENANT_ID, USER_ID, date);
 
-      expect(result).not.toBeNull();
-      expect(result!.shiftId).toBe('rotation-shift-1');
+      if (!result) throw new Error('expected getEffectiveShift to return a result');
+      expect(result.shiftId).toBe('rotation-shift-1');
     });
 
     it('returns null for day-off rotation slot', async () => {
@@ -407,7 +416,7 @@ describe('ShiftsService', () => {
 
       const result = await service.createRotation(
         TENANT_ID,
-        { name: '2-Week Rotation', cycleDays: 14, startDate: '2025-01-06' } as any,
+        { name: '2-Week Rotation', cycleDays: 14, startDate: '2025-01-06' } as unknown as CreateRotationDto,
         ACTOR_ID,
       );
 
@@ -419,7 +428,7 @@ describe('ShiftsService', () => {
       mockPrisma.shiftRotation.findFirst.mockResolvedValue({ id: 'existing' });
 
       await expect(
-        service.createRotation(TENANT_ID, { name: 'Existing', cycleDays: 7, startDate: '2025-01-01' } as any, ACTOR_ID),
+        service.createRotation(TENANT_ID, { name: 'Existing', cycleDays: 7, startDate: '2025-01-01' } as unknown as CreateRotationDto, ACTOR_ID),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -439,7 +448,7 @@ describe('ShiftsService', () => {
       mockPrisma.shiftRotation.findFirst.mockResolvedValue(rotation);
 
       await expect(
-        service.upsertRotationSlot(TENANT_ID, 'rotation-1', { dayOffset: 10, shiftId: null } as any, ACTOR_ID),
+        service.upsertRotationSlot(TENANT_ID, 'rotation-1', { dayOffset: 10, shiftId: null } as unknown as UpsertRotationSlotDto, ACTOR_ID),
       ).rejects.toThrow(BadRequestException);
     });
   });

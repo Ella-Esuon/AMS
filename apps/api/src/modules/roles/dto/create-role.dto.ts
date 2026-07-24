@@ -163,7 +163,7 @@ export class CreatePolicyDto {
   })
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
 
   @ApiPropertyOptional({ default: 0 })
   @Field(() => Int, { nullable: true, defaultValue: 0 })

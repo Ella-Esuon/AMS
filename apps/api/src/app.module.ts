@@ -6,6 +6,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
+import { Response } from 'express';
+import { RequestWithTenant } from './common/types/request.types';
 
 import { configuration, validationSchema } from './config/configuration';
 import { DatabaseModule } from './database/database.module';
@@ -41,7 +43,7 @@ import { ShiftsModule } from './modules/shifts/shifts.module';
         sortSchema: true,
         playground: config.get('app.nodeEnv') !== 'production',
         introspection: config.get('app.nodeEnv') !== 'production',
-        context: ({ req, res, connection }:any) => ({
+        context: ({ req, res, connection }: { req: RequestWithTenant; res: Response; connection?: unknown }) => ({
           req,
           res,
           connection,

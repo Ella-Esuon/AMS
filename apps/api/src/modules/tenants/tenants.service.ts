@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma } from '@prisma/client';
 import slugify from 'slugify';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../database/prisma.service';
@@ -166,10 +167,14 @@ export class TenantsService {
     };
   }
 
-async findOne(id: string) {
+async findOne(id: string): Promise<Prisma.TenantGetPayload<{
+  include: { _count: { select: { users: true; departments: true; roles: true } } };
+}> & { userCount: number }> {
   const cacheKey = `${TENANT_CACHE_PREFIX}${id}`;
 
-  const cached = await this.redis.get<any>(cacheKey);
+  const cached = await this.redis.get<Prisma.TenantGetPayload<{
+    include: { _count: { select: { users: true; departments: true; roles: true } } };
+  }> & { userCount: number }>(cacheKey);
   if (cached) return cached;
 
   const tenant = await this.prisma.tenant.findFirst({
@@ -234,7 +239,7 @@ async findOne(id: string) {
   }
 
   async updateStatus(id: string, dto: UpdateTenantStatusDto) {
-   const tenant = (await this.findOne(id)) as any;
+   const tenant = await this.findOne(id);
 
     if (tenant.status === dto.status) {
       throw new BadRequestException(`Tenant is already in ${dto.status} status`);

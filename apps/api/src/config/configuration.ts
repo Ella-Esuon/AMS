@@ -112,8 +112,8 @@ export const configuration = (): AppConfig => ({
   },
   jwt: {
     // Non-null: validationSchema below requires these (min 32 chars) before boot completes.
-    accessSecret: process.env.JWT_ACCESS_SECRET!,
-    refreshSecret: process.env.JWT_REFRESH_SECRET!,
+    accessSecret: process.env.JWT_ACCESS_SECRET as string,
+    refreshSecret: process.env.JWT_REFRESH_SECRET as string,
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     issuer: process.env.JWT_ISSUER || 'ams-platform',
@@ -154,7 +154,7 @@ export const configuration = (): AppConfig => ({
   },
   encryption: {
     // Non-null: validationSchema below requires this (min 32 chars) before boot completes.
-    key: process.env.ENCRYPTION_KEY!,
+    key: process.env.ENCRYPTION_KEY as string,
     ivLength: parseInt(process.env.ENCRYPTION_IV_LENGTH || '16', 10),
   },
   logging: {
