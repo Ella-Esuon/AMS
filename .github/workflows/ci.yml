@@ -34,6 +34,12 @@ jobs:
         run: npm ci
         working-directory: apps/api
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://ams_user:ams_password@localhost:5432/ams_test
+
       - name: Lint
         run: npm run lint
         working-directory: apps/api
