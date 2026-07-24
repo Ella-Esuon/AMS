@@ -866,12 +866,12 @@ export class AttendanceService {
 
  private async getOrCreatePolicy(
    tenantId: string,
-): Promise<Prisma.AttendancePolicyGetPayload<{}>> {
+): Promise<Prisma.AttendancePolicyGetPayload<Record<string, never>>> {
   const cacheKey = this.policyKey(tenantId);
    
 
  const cached = 
-  await this.redis.get<Prisma.AttendancePolicyGetPayload<{}>>(cacheKey);
+  await this.redis.get<Prisma.AttendancePolicyGetPayload<Record<string, never>>>(cacheKey);
 
  if (cached) {
    return cached;
