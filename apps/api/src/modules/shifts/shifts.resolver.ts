@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Context, ID, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Context, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ShiftsService } from './shifts.service';
 import { CreateShiftDto, CreateBreakRuleDto } from './dto/create-shift.dto';

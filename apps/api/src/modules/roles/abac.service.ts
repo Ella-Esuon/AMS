@@ -46,14 +46,6 @@ export class AbacService {
   // ─── Policy Evaluation ────────────────────────────────────────────────────
 
   async evaluate(ctx: AbacContext): Promise<boolean> {
-    const cacheKey = this.redis.buildTenantKey(
-      ctx.tenantId,
-      'abac',
-      ctx.userId,
-      ctx.resource,
-      ctx.action,
-    );
-
     // Load policies: user-specific + tenant-wide
     const policies = await this.prisma.userPolicy.findMany({
       where: {

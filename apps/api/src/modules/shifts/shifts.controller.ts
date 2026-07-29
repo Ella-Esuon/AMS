@@ -17,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
-  ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
 import { ShiftsService } from './shifts.service';

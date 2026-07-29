@@ -249,7 +249,7 @@ export class RolesService {
     });
   }
 
-  async createPolicy(tenantId: string, dto: CreatePolicyDto, createdBy: string) {
+  async createPolicy(tenantId: string, dto: CreatePolicyDto, _createdBy: string) {
     return this.prisma.userPolicy.create({
       data: {
         tenantId,

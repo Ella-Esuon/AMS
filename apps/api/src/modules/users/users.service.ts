@@ -285,8 +285,6 @@ export class UsersService {
       if (existing) throw new ConflictException('Employee ID is already in use');
     }
 
-    const oldUser = await this.prisma.user.findUnique({ where: { id } });
-
     const updated = await this.prisma.user.update({
       where: { id },
       data: {
@@ -395,7 +393,7 @@ export class UsersService {
     return { message: 'Roles assigned successfully', success: true };
   }
 
-  async revokeRole(userId: string, tenantId: string, roleId: string, revokedBy: string) {
+  async revokeRole(userId: string, tenantId: string, roleId: string, _revokedBy: string) {
     await this.prisma.userRole.updateMany({
       where: { userId, roleId, tenantId },
       data: { isActive: false },

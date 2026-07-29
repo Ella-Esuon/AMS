@@ -12,15 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CognitoIdentityProviderClient,
-  InitiateAuthCommand,
   SignUpCommand,
-  ConfirmSignUpCommand,
-  ForgotPasswordCommand,
-  ConfirmForgotPasswordCommand,
-  ChangePasswordCommand,
-  AdminDeleteUserCommand,
-  AdminSetUserPasswordCommand,
-  AdminGetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -39,11 +31,10 @@ import {
   RefreshTokenResponse,
   MessageResponse,
 } from './types/auth.types';
-import { JwtPayload, AuthenticatedUser } from '../../common/types/request.types';
+import { JwtPayload } from '../../common/types/request.types';
 
 const BCRYPT_ROUNDS = 12;
 const MFA_TOKEN_TTL = 300; // 5 minutes
-const REFRESH_TOKEN_FAMILY_TTL = 60 * 60 * 24 * 7; // 7 days
 
 @Injectable()
 export class AuthService {
@@ -567,7 +558,7 @@ export class AuthService {
     });
   }
 
-  private async verifyPassword(password: string, user: { passwordHash: string | null; cognitoSub?: string | null }, tenantId: string): Promise<boolean> {
+  private async verifyPassword(password: string, user: { passwordHash: string | null; cognitoSub?: string | null }, _tenantId: string): Promise<boolean> {
     if (!user.passwordHash) return false;
     return bcrypt.compare(password, user.passwordHash);
   }
@@ -608,7 +599,7 @@ const isValidTotp = authenticator.verify({
     return false;
   }
 
-  private async handleFailedLogin(userId: string, tenantId: string) {
+  private async handleFailedLogin(userId: string, _tenantId: string) {
     const user = await this.prisma.user.findFirst({ where: { id: userId } });
     if (!user) return;
 

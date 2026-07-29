@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, AttendanceStatus, ClockMethod, BreakType, AuditAction, AuditStatus } from '@prisma/client';
-import { differenceInMinutes, startOfDay, endOfDay, format, parseISO } from 'date-fns';
+import { differenceInMinutes, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
 import { ClockInDto, StartBreakDto } from './dto/clock-in.dto';
@@ -87,7 +87,7 @@ export class AttendanceService {
     userId: string,
     dto: ClockInDto,
     ipAddress?: string,
-    userAgent?: string,
+    _userAgent?: string,
   ) {
     // Prevent duplicate clock-in
     const existingSession = await this.getActiveSessionFromCache(tenantId, userId);
@@ -109,7 +109,7 @@ export class AttendanceService {
     if (dbActive) {
       await this.cacheActiveSession(tenantId, userId, {
         recordId: dbActive.id,
-        clockIn: dbActive.clockIn!.toISOString(),
+        clockIn: (dbActive.clockIn as Date).toISOString(),
         date: dbActive.date.toISOString(),
       });
       throw new ConflictException('Already clocked in. Please clock out before clocking in again.');
@@ -238,7 +238,7 @@ export class AttendanceService {
     userId: string,
     dto: ClockOutDto,
     ipAddress?: string,
-    userAgent?: string,
+    _userAgent?: string,
   ) {
     const session = await this.getActiveSessionFromCache(tenantId, userId);
     if (!session) {
@@ -294,7 +294,7 @@ export class AttendanceService {
     // Use shift-level overtime threshold when available, fall back to policy
     let effectiveOvertimeAfter = policy.overtimeAfterMinutes;
     if (existing.shiftId && this.shiftsService) {
-      const shiftData = await this.shiftsService.findOne(tenantId, existing.shiftId).catch(() => null) as any;
+      const shiftData = await this.shiftsService.findOne(tenantId, existing.shiftId).catch(() => null);
       if (shiftData?.overtimeAfterMinutes != null) {
         effectiveOvertimeAfter = shiftData.overtimeAfterMinutes;
       }
@@ -522,7 +522,7 @@ export class AttendanceService {
     const openBreak = record.breaks[0];
     const session2: ActiveSession = {
       recordId: record.id,
-      clockIn: record.clockIn!.toISOString(),
+      clockIn: (record.clockIn as Date).toISOString(),
       date: record.date.toISOString(),
       ...(openBreak && {
         activeBreakId: openBreak.id,
@@ -866,12 +866,12 @@ export class AttendanceService {
 
  private async getOrCreatePolicy(
    tenantId: string,
-): Promise<Prisma.AttendancePolicyGetPayload<{}>> {
+): Promise<Prisma.AttendancePolicyGetPayload<Record<string, never>>> {
   const cacheKey = this.policyKey(tenantId);
    
 
  const cached = 
-  await this.redis.get<Prisma.AttendancePolicyGetPayload<{}>>(cacheKey);
+  await this.redis.get<Prisma.AttendancePolicyGetPayload<Record<string, never>>>(cacheKey);
 
  if (cached) {
    return cached;
