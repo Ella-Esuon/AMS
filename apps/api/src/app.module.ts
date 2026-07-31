@@ -22,6 +22,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { HealthModule } from './modules/health/health.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
+import { LeavesModule } from './modules/leaves/leaves.module';
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import { ShiftsModule } from './modules/shifts/shifts.module';
     HealthModule,
     AttendanceModule,
     ShiftsModule,
+    LeavesModule,
   ],
 })
 export class AppModule implements NestModule {

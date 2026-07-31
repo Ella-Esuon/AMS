@@ -10,6 +10,14 @@ type ActiveSessionType {
   recordId: String!
 }
 
+input AdjustLeaveBalanceDto {
+  allocatedDays: Float
+  carriedOverDays: Float
+  leaveTypeId: String!
+  userId: String!
+  year: Int!
+}
+
 input AssignShiftDto {
   endDate: String
   notes: String
@@ -169,6 +177,24 @@ input CreateBreakRuleDto {
   startOffsetMins: Int!
 }
 
+input CreateLeaveRequestDto {
+  endDate: String!
+  isHalfDay: Boolean
+  leaveTypeId: String!
+  reason: String
+  startDate: String!
+}
+
+input CreateLeaveTypeDto {
+  code: String
+  colorCode: String
+  defaultDaysPerYear: Int
+  description: String
+  isPaid: Boolean
+  name: String!
+  requiresApproval: Boolean
+}
+
 input CreateRotationDto {
   cycleDays: Int!
   description: String
@@ -210,6 +236,60 @@ input EndBreakDto {
   notes: String
 }
 
+type LeaveBalanceType {
+  allocatedDays: Float!
+  availableDays: Float!
+  carriedOverDays: Float!
+  id: ID!
+  leaveTypeId: String!
+  tenantId: String!
+  usedDays: Float!
+  userId: String!
+  year: Int!
+}
+
+"""Status of a leave request"""
+enum LeaveRequestStatus {
+  APPROVED
+  CANCELLED
+  PENDING
+  REJECTED
+}
+
+type LeaveRequestType {
+  cancelledAt: DateTime
+  createdAt: DateTime!
+  endDate: DateTime!
+  id: ID!
+  isHalfDay: Boolean!
+  leaveTypeId: String!
+  reason: String
+  rejectionReason: String
+  reviewedAt: DateTime
+  reviewedBy: String
+  startDate: DateTime!
+  status: LeaveRequestStatus!
+  tenantId: String!
+  totalDays: Float!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type LeaveTypeType {
+  code: String
+  colorCode: String
+  createdAt: DateTime!
+  defaultDaysPerYear: Int!
+  description: String
+  id: ID!
+  isActive: Boolean!
+  isPaid: Boolean!
+  name: String!
+  requiresApproval: Boolean!
+  tenantId: String!
+  updatedAt: DateTime!
+}
+
 input ManualEntryDto {
   clockIn: String
   clockOut: String
@@ -221,17 +301,23 @@ input ManualEntryDto {
 
 type Mutation {
   addShiftBreakRule(input: CreateBreakRuleDto!, shiftId: ID!): ShiftBreakRuleType!
+  adjustLeaveBalance(input: AdjustLeaveBalanceDto!): LeaveBalanceType!
   assignShift(input: AssignShiftDto!): ShiftAssignmentType!
+  cancelMyLeaveRequest(id: ID!): LeaveRequestType!
   clockIn(input: ClockInDto): AttendanceRecordType!
   clockOut(input: ClockOutDto): AttendanceRecordType!
+  createLeaveType(input: CreateLeaveTypeDto!): LeaveTypeType!
   createManualAttendance(input: ManualEntryDto!): AttendanceRecordType!
   createShift(input: CreateShiftDto!): ShiftType!
   createShiftRotation(input: CreateRotationDto!): ShiftRotationType!
   deleteShift(id: ID!): Boolean!
   endBreak(input: EndBreakDto): AttendanceBreakType!
   removeShiftBreakRule(ruleId: ID!, shiftId: ID!): Boolean!
+  reviewLeaveRequest(id: ID!, input: ReviewLeaveRequestDto!): LeaveRequestType!
   startBreak(input: StartBreakDto): AttendanceBreakType!
+  submitLeaveRequest(input: CreateLeaveRequestDto!): LeaveRequestType!
   updateAttendanceRecord(id: ID!, input: UpdateAttendanceDto!): AttendanceRecordType!
+  updateLeaveType(id: ID!, input: UpdateLeaveTypeDto!): LeaveTypeType!
   updateShift(id: ID!, input: UpdateShiftDto!): ShiftType!
   updateShiftAssignment(id: ID!, input: UpdateAssignmentDto!): ShiftAssignmentType!
   upsertAttendancePolicy(input: AttendancePolicyDto!): AttendancePolicyType!
@@ -246,6 +332,16 @@ type PaginatedAssignmentsType {
 type PaginatedAttendanceType {
   meta: PaginationMeta!
   nodes: [AttendanceRecordType!]!
+}
+
+type PaginatedLeaveRequestType {
+  meta: PaginationMeta!
+  nodes: [LeaveRequestType!]!
+}
+
+type PaginatedLeaveTypeType {
+  meta: PaginationMeta!
+  nodes: [LeaveTypeType!]!
 }
 
 type PaginatedShiftsType {
@@ -272,8 +368,13 @@ type Query {
     date: String!
     userId: ID!
   ): EffectiveShiftType
+  leaveRequest(id: ID!): LeaveRequestType!
+  leaveRequests(query: QueryLeaveRequestDto): PaginatedLeaveRequestType!
+  leaveTypes(query: QueryLeaveTypeDto): PaginatedLeaveTypeType!
   myActiveSession: ActiveSessionType
   myAttendance(query: QueryAttendanceDto): PaginatedAttendanceType!
+  myLeaveBalances(year: Int): [LeaveBalanceType!]!
+  myLeaveRequests(query: QueryLeaveRequestDto): PaginatedLeaveRequestType!
   shift(id: ID!): ShiftType!
   shiftAssignment(id: ID!): ShiftAssignmentType!
   shiftAssignments(query: QueryAssignmentDto): PaginatedAssignmentsType!
@@ -310,6 +411,28 @@ input QueryAttendanceDto {
   userId: String
 }
 
+input QueryLeaveRequestDto {
+  endDate: String
+  leaveTypeId: String
+  limit: Int! = 20
+  page: Int! = 1
+  search: String
+  sortBy: String
+  sortOrder: String = "desc"
+  startDate: String
+  status: LeaveRequestStatus
+  userId: String
+}
+
+input QueryLeaveTypeDto {
+  isActive: Boolean
+  limit: Int! = 20
+  page: Int! = 1
+  search: String
+  sortBy: String
+  sortOrder: String = "desc"
+}
+
 input QueryShiftDto {
   isActive: Boolean
   limit: Int! = 20
@@ -317,6 +440,11 @@ input QueryShiftDto {
   search: String
   sortBy: String
   sortOrder: String = "desc"
+}
+
+input ReviewLeaveRequestDto {
+  decision: LeaveRequestStatus!
+  rejectionReason: String
 }
 
 input RotationSlotDto {
@@ -425,6 +553,17 @@ input UpdateAttendanceDto {
   clockOut: String
   notes: String
   status: AttendanceStatus
+}
+
+input UpdateLeaveTypeDto {
+  code: String
+  colorCode: String
+  defaultDaysPerYear: Int
+  description: String
+  isActive: Boolean
+  isPaid: Boolean
+  name: String
+  requiresApproval: Boolean
 }
 
 input UpdateShiftDto {

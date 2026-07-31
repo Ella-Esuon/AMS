@@ -633,6 +633,37 @@ export class AttendanceService {
     };
   }
 
+  // ─── Leave Integration ────────────────────────────────────────────────────
+
+  /**
+   * Called by LeavesService when a leave request is approved/cancelled to
+   * reflect ON_LEAVE on the day's attendance record. Never overwrites a day
+   * the user actually clocked in for — leave never trumps real attendance.
+   */
+  async setLeaveStatus(tenantId: string, userId: string, date: Date, onLeave: boolean): Promise<void> {
+    const day = startOfDay(date);
+    const existing = await this.prisma.attendanceRecord.findFirst({ where: { tenantId, userId, date: day } });
+
+    if (onLeave) {
+      if (existing) {
+        if (existing.clockIn) return;
+        await this.prisma.attendanceRecord.update({
+          where: { id: existing.id },
+          data: { status: AttendanceStatus.ON_LEAVE },
+        });
+      } else {
+        await this.prisma.attendanceRecord.create({
+          data: { tenantId, userId, date: day, status: AttendanceStatus.ON_LEAVE },
+        });
+      }
+      return;
+    }
+
+    if (existing && existing.status === AttendanceStatus.ON_LEAVE && !existing.clockIn) {
+      await this.prisma.attendanceRecord.delete({ where: { id: existing.id } });
+    }
+  }
+
   // ─── Manual Entry ─────────────────────────────────────────────────────────
 
   async createManualEntry(tenantId: string, dto: ManualEntryDto, actorId: string) {
