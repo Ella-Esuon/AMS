@@ -127,6 +127,9 @@ model Tenant {
   shifts              Shift[]
   shiftAssignments    ShiftAssignment[]
   shiftRotations      ShiftRotation[]
+  leaveTypes          LeaveType[]
+  leaveBalances       LeaveBalance[]
+  leaveRequests       LeaveRequest[]
 
   @@index([slug])
   @@index([status])
@@ -185,6 +188,8 @@ model User {
   actedAuditLogs      AuditLog[]        @relation("AuditLogActor")
   attendanceRecords   AttendanceRecord[]
   shiftAssignments    ShiftAssignment[]
+  leaveBalances       LeaveBalance[]
+  leaveRequests       LeaveRequest[]
 
   @@unique([tenantId, email])
   @@unique([tenantId, employeeId])
@@ -453,6 +458,13 @@ enum BreakType {
   OTHER
 }
 
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 // ─── AuditLog ────────────────────────────────────────────────────────────────
 
 model AuditLog {
@@ -713,4 +725,88 @@ model ShiftRotationSlot {
   @@index([rotationId])
   @@index([tenantId])
   @@map("shift_rotation_slots")
+}
+
+// ─── LeaveType ───────────────────────────────────────────────────────────────
+
+model LeaveType {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String    @db.Uuid
+  name               String    @db.VarChar(100)
+  code               String?   @db.VarChar(50)
+  description        String?   @db.Text
+  isPaid             Boolean   @default(true)
+  defaultDaysPerYear Int       @default(0) // 0 = unlimited / not balance-tracked
+  requiresApproval   Boolean   @default(true)
+  colorCode          String?   @db.VarChar(7)
+  isActive           Boolean   @default(true)
+  metadata           Json      @default("{}")
+  createdAt          DateTime  @default(now()) @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @db.Timestamptz
+  deletedAt          DateTime? @db.Timestamptz
+
+  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  balances           LeaveBalance[]
+  requests           LeaveRequest[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@map("leave_types")
+}
+
+// ─── LeaveBalance ────────────────────────────────────────────────────────────
+
+model LeaveBalance {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @db.Uuid
+  userId          String   @db.Uuid
+  leaveTypeId     String   @db.Uuid
+  year            Int
+  allocatedDays   Decimal  @default(0) @db.Decimal(5, 2)
+  usedDays        Decimal  @default(0) @db.Decimal(5, 2)
+  carriedOverDays Decimal  @default(0) @db.Decimal(5, 2)
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @updatedAt @db.Timestamptz
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType       LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, leaveTypeId, year])
+  @@index([tenantId, userId])
+  @@index([tenantId, leaveTypeId])
+  @@map("leave_balances")
+}
+
+// ─── LeaveRequest ────────────────────────────────────────────────────────────
+
+model LeaveRequest {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String             @db.Uuid
+  userId          String             @db.Uuid
+  leaveTypeId     String             @db.Uuid
+  startDate       DateTime           @db.Date
+  endDate         DateTime           @db.Date
+  isHalfDay       Boolean            @default(false)
+  totalDays       Decimal            @db.Decimal(5, 2)
+  reason          String?            @db.Text
+  status          LeaveRequestStatus @default(PENDING)
+  reviewedBy      String?            @db.Uuid
+  reviewedAt      DateTime?          @db.Timestamptz
+  rejectionReason String?            @db.Text
+  cancelledAt     DateTime?          @db.Timestamptz
+  metadata        Json               @default("{}")
+  createdAt       DateTime           @default(now()) @db.Timestamptz
+  updatedAt       DateTime           @updatedAt @db.Timestamptz
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType       LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+  @@index([tenantId, startDate, endDate])
+  @@map("leave_requests")
 }
