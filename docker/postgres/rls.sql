@@ -150,6 +150,27 @@ ALTER TABLE shift_rotation_slots FORCE ROW LEVEL SECURITY;
 CREATE POLICY shift_rotation_slots_tenant_isolation ON shift_rotation_slots
   USING (bypass_rls() OR "tenantId" = current_tenant_id());
 
+-- ─── leave_types table ─────────────────────────────────────────────────────────
+ALTER TABLE leave_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leave_types FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY leave_types_tenant_isolation ON leave_types
+  USING (bypass_rls() OR "tenantId" = current_tenant_id());
+
+-- ─── leave_balances table ──────────────────────────────────────────────────────
+ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leave_balances FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY leave_balances_tenant_isolation ON leave_balances
+  USING (bypass_rls() OR "tenantId" = current_tenant_id());
+
+-- ─── leave_requests table ──────────────────────────────────────────────────────
+ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leave_requests FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY leave_requests_tenant_isolation ON leave_requests
+  USING (bypass_rls() OR "tenantId" = current_tenant_id());
+
 -- Grant ams_app role policy access
 ALTER TABLE users OWNER TO ams_user;
 ALTER TABLE user_profiles OWNER TO ams_user;
@@ -168,3 +189,6 @@ ALTER TABLE shift_break_rules OWNER TO ams_user;
 ALTER TABLE shift_assignments OWNER TO ams_user;
 ALTER TABLE shift_rotations OWNER TO ams_user;
 ALTER TABLE shift_rotation_slots OWNER TO ams_user;
+ALTER TABLE leave_types OWNER TO ams_user;
+ALTER TABLE leave_balances OWNER TO ams_user;
+ALTER TABLE leave_requests OWNER TO ams_user;
