@@ -58,6 +58,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'LeaveRequest',
   'LeaveType',
   'Location',
+  'Notification',
   'RefreshToken',
   'Role',
   'Shift',
