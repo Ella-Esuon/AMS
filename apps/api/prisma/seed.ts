@@ -39,6 +39,8 @@ async function main() {
     { resource: 'shifts', action: 'read', category: 'Scheduling', description: 'View shifts' },
     { resource: 'shifts', action: 'update', category: 'Scheduling', description: 'Edit shifts' },
     { resource: 'shifts', action: 'delete', category: 'Scheduling', description: 'Delete shifts' },
+    // Notifications
+    { resource: 'notifications', action: 'manage', category: 'Notifications', description: 'Send notifications to users' },
     // Reports
     { resource: 'reports', action: 'read', category: 'Reports', description: 'View reports' },
     { resource: 'reports', action: 'export', category: 'Reports', description: 'Export reports' },

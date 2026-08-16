@@ -195,6 +195,14 @@ input CreateLeaveTypeDto {
   requiresApproval: Boolean
 }
 
+input CreateNotificationDto {
+  category: NotificationCategory
+  message: String!
+  priority: NotificationPriority
+  title: String!
+  userId: String!
+}
+
 input CreateRotationDto {
   cycleDays: Int!
   description: String
@@ -312,8 +320,11 @@ type Mutation {
   createShiftRotation(input: CreateRotationDto!): ShiftRotationType!
   deleteShift(id: ID!): Boolean!
   endBreak(input: EndBreakDto): AttendanceBreakType!
+  markAllNotificationsAsRead: Int!
+  markNotificationAsRead(id: ID!): NotificationType!
   removeShiftBreakRule(ruleId: ID!, shiftId: ID!): Boolean!
   reviewLeaveRequest(id: ID!, input: ReviewLeaveRequestDto!): LeaveRequestType!
+  sendNotification(input: CreateNotificationDto!): NotificationType!
   startBreak(input: StartBreakDto): AttendanceBreakType!
   submitLeaveRequest(input: CreateLeaveRequestDto!): LeaveRequestType!
   updateAttendanceRecord(id: ID!, input: UpdateAttendanceDto!): AttendanceRecordType!
@@ -322,6 +333,41 @@ type Mutation {
   updateShiftAssignment(id: ID!, input: UpdateAssignmentDto!): ShiftAssignmentType!
   upsertAttendancePolicy(input: AttendancePolicyDto!): AttendancePolicyType!
   upsertRotationSlot(input: UpsertRotationSlotDto!, rotationId: ID!): ShiftRotationSlotType!
+}
+
+"""Category of a notification"""
+enum NotificationCategory {
+  ANNOUNCEMENT
+  APPROVAL
+  ATTENDANCE
+  LEAVE
+  SECURITY
+  SHIFT
+  SYSTEM
+}
+
+"""Priority of a notification"""
+enum NotificationPriority {
+  HIGH
+  LOW
+  NORMAL
+  URGENT
+}
+
+type NotificationType {
+  category: NotificationCategory!
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  message: String!
+  priority: NotificationPriority!
+  readAt: DateTime
+  resource: String
+  resourceId: String
+  tenantId: String!
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
 }
 
 type PaginatedAssignmentsType {
@@ -342,6 +388,11 @@ type PaginatedLeaveRequestType {
 type PaginatedLeaveTypeType {
   meta: PaginationMeta!
   nodes: [LeaveTypeType!]!
+}
+
+type PaginatedNotificationType {
+  meta: PaginationMeta!
+  nodes: [NotificationType!]!
 }
 
 type PaginatedShiftsType {
@@ -375,6 +426,9 @@ type Query {
   myAttendance(query: QueryAttendanceDto): PaginatedAttendanceType!
   myLeaveBalances(year: Int): [LeaveBalanceType!]!
   myLeaveRequests(query: QueryLeaveRequestDto): PaginatedLeaveRequestType!
+  myNotifications(query: QueryNotificationDto): PaginatedNotificationType!
+  myUnreadNotificationCount: Int!
+  notification(id: ID!): NotificationType!
   shift(id: ID!): ShiftType!
   shiftAssignment(id: ID!): ShiftAssignmentType!
   shiftAssignments(query: QueryAssignmentDto): PaginatedAssignmentsType!
@@ -431,6 +485,20 @@ input QueryLeaveTypeDto {
   search: String
   sortBy: String
   sortOrder: String = "desc"
+}
+
+input QueryNotificationDto {
+  category: NotificationCategory
+  endDate: String
+  isRead: Boolean
+  limit: Int! = 20
+  page: Int! = 1
+  priority: NotificationPriority
+  resource: String
+  search: String
+  sortBy: String
+  sortOrder: String = "desc"
+  startDate: String
 }
 
 input QueryShiftDto {
