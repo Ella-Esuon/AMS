@@ -130,6 +130,7 @@ model Tenant {
   leaveTypes          LeaveType[]
   leaveBalances       LeaveBalance[]
   leaveRequests       LeaveRequest[]
+  notifications       Notification[]
 
   @@index([slug])
   @@index([status])
@@ -190,6 +191,7 @@ model User {
   shiftAssignments    ShiftAssignment[]
   leaveBalances       LeaveBalance[]
   leaveRequests       LeaveRequest[]
+  notifications       Notification[]
 
   @@unique([tenantId, email])
   @@unique([tenantId, employeeId])
@@ -463,6 +465,23 @@ enum LeaveRequestStatus {
   APPROVED
   REJECTED
   CANCELLED
+}
+
+enum NotificationCategory {
+  SYSTEM
+  ATTENDANCE
+  SHIFT
+  LEAVE
+  APPROVAL
+  ANNOUNCEMENT
+  SECURITY
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 // ─── AuditLog ────────────────────────────────────────────────────────────────
@@ -809,4 +828,32 @@ model LeaveRequest {
   @@index([tenantId, status])
   @@index([tenantId, startDate, endDate])
   @@map("leave_requests")
+}
+
+// ─── Notification ────────────────────────────────────────────────────────────
+
+model Notification {
+  id         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String               @db.Uuid
+  userId     String               @db.Uuid
+  category   NotificationCategory @default(SYSTEM)
+  priority   NotificationPriority @default(NORMAL)
+  title      String               @db.VarChar(255)
+  message    String               @db.Text
+  isRead     Boolean              @default(false)
+  readAt     DateTime?            @db.Timestamptz
+  resource   String?              @db.VarChar(100) // e.g. 'leave_request', 'attendance', 'shift'
+  resourceId String?              @db.VarChar(255) // id of the linked entity, if any
+  metadata   Json                 @default("{}")
+  createdAt  DateTime             @default(now()) @db.Timestamptz
+  updatedAt  DateTime             @updatedAt @db.Timestamptz
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, userId, isRead])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, resource, resourceId])
+  @@map("notifications")
 }

@@ -421,7 +421,13 @@ export class LeavesService {
       select: LEAVE_REQUEST_SELECT,
     });
 
-    this.eventEmitter.emit('leave.cancelled', { tenantId, requestId, userId, actorId: userId });
+    this.eventEmitter.emit('leave.cancelled', {
+      tenantId,
+      requestId,
+      userId,
+      actorId: userId,
+      previousStatus: existing.status,
+    });
     return this.normalizeRequest(request);
   }
 
@@ -451,7 +457,13 @@ export class LeavesService {
       { status: existing.status },
       { status: LeaveRequestStatus.CANCELLED },
     );
-    this.eventEmitter.emit('leave.cancelled', { tenantId, requestId, userId: existing.userId, actorId });
+    this.eventEmitter.emit('leave.cancelled', {
+      tenantId,
+      requestId,
+      userId: existing.userId,
+      actorId,
+      previousStatus: existing.status,
+    });
 
     return this.normalizeRequest(request);
   }

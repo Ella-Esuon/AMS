@@ -171,6 +171,13 @@ ALTER TABLE leave_requests FORCE ROW LEVEL SECURITY;
 CREATE POLICY leave_requests_tenant_isolation ON leave_requests
   USING (bypass_rls() OR "tenantId" = current_tenant_id());
 
+-- ─── notifications table ───────────────────────────────────────────────────────
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY notifications_tenant_isolation ON notifications
+  USING (bypass_rls() OR "tenantId" = current_tenant_id());
+
 -- Grant ams_app role policy access
 ALTER TABLE users OWNER TO ams_user;
 ALTER TABLE user_profiles OWNER TO ams_user;
@@ -192,3 +199,4 @@ ALTER TABLE shift_rotation_slots OWNER TO ams_user;
 ALTER TABLE leave_types OWNER TO ams_user;
 ALTER TABLE leave_balances OWNER TO ams_user;
 ALTER TABLE leave_requests OWNER TO ams_user;
+ALTER TABLE notifications OWNER TO ams_user;
